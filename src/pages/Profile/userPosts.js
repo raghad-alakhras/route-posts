@@ -3,7 +3,8 @@ import axios from "axios"
 
 export default function useGetUserPosts(id){
     const {data, isLoading,isError} = useQuery({queryKey:['userData'],
-         queryFn:getUserData})
+         queryFn:getUserData,
+         enabled: !!id})
     
     function getUserData(){
     return axios.get(`https://route-posts.routemisr.com/users/${id}/posts`, 
