@@ -7,9 +7,8 @@ import CreatePost from '../../components/CreatePost/CreatePost'
 
 export default function MyPosts() {
  const {userData}=useContext(authContext)
- const {data,isLoading,isError}= useGetUserPosts(userData?._id)
- 
-   
+ const {data,isLoading,isError}= useGetUserPosts(userData?.id)
+
  
    return (
        <>
