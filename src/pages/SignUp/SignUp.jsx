@@ -12,7 +12,7 @@ import { authContext } from "../../context/AuthContext";
 import AboutRoute from "../../components/AboutRoute/AboutRoute";
 
 export default function SignUp() {
-  const setLogin = useContext(authContext);
+  const {setLogin} = useContext(authContext);
   const navigate = useNavigate();
 // collect signup data
   const {
@@ -39,9 +39,10 @@ export default function SignUp() {
       localStorage.setItem("token", data?.data?.data?.token);
       setLogin(data?.data?.data?.token);
       navigate("/");
+      
     }, 
     onError: (error)=>{
-    if(error.response.status === 409){
+    if(error?.response?.status === 409){
       toast.error('user already exist');
     }}
     }

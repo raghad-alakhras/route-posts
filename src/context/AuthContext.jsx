@@ -28,7 +28,7 @@ export default function AuthContextProvider({children}) {
     useEffect(()=>{
         handleRefresh()
          getUserData()
-    },[])
+    },[isLogin])
   return (
     <authContext.Provider value={{isLogin,setLogin,userData}}> {children}</authContext.Provider>
   )
