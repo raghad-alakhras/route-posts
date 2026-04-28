@@ -18,8 +18,7 @@ export default function Login() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
-    setError,
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(signISchema),
     defaultValues: {
@@ -34,8 +33,14 @@ export default function Login() {
     onSuccess: (data) => {
       localStorage.setItem("token", data?.data?.data?.token);
       setLogin(data?.data?.data?.token);
-      navigate("/");
-    } 
+      toast.success('login successfully!')
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
+    } ,
+    onError: ()=>{
+     toast.error('incorrect email or password')
+    }
   });
  
   function handleSignin(formData) {
@@ -43,8 +48,9 @@ export default function Login() {
   }
 
   function submitLogin(formData) {
+    const apiUrl = import.meta.env.VITE_API_BASE_URL || 'https://route-posts.routemisr.com';
     return axios.post(
-      `https://route-posts.routemisr.com/users/signin`,
+      `${apiUrl}/users/signin`,
       formData,
     );
   }

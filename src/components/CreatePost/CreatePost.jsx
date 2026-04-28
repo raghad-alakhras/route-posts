@@ -64,7 +64,7 @@ function createPost(formData){
         {/* body input */}
          <textarea
             placeholder={`What's on your mind , ${userData?.name.split(" ")[0]}?`}
-            className="w-full h-[100px] my-4 resize-none px-4 py-3  pr-12 bg-blue-50/40 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-400 focus:bg-white transition-all text-sm placeholder:text-gray-400 placeholder:text-[16px]"
+            className="w-full h-[100px] my-4 resize-none px-4 py-3  pr-12 bg-blue-50/40 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-400 focus:bg-white transition-all text-sm placeholder:text-gray-400 placeholder:md:text-[16px]"
             type="text"
             ref={bodyInput}
           />
@@ -80,14 +80,14 @@ function createPost(formData){
 
         {/* btns */}
           <div className="flex items-center justify-between pt-2 border-t ">
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <label htmlFor='imageInput' className="flex items-center text-gray-500 gap-2 p-2 transition-colors duration-500 hover:bg-green-50 rounded-md">
               <i className='fa-regular fa-image text-green-700 text-md '></i>
-              <p className='font-semibold text-sm'>Photo/Video</p>
+              <p className='font-semibold text-sm hidden md:block'>Photo/Video</p>
             </label>
             <button className="flex items-center text-gray-500 gap-2 p-2 transition-colors duration-500 hover:bg-green-50 rounded-md">
               <i className='fa-regular fa-smile text-yellow-500 text-md '></i>
-              <p className='font-semibold text-sm'>Feelings/Activity</p>
+              <p className='font-semibold text-sm hidden md:block'>Feelings/Activity</p>
             </button>
             </div>
               

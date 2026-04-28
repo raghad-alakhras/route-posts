@@ -5,9 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema } from "../../schema/Register.schema";
 import ErrorMessage from "../../components/ErrorMessage";
 import axios from "axios";
-import { useState } from "react";
 import { toast } from "react-toastify";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { authContext } from "../../context/AuthContext";
 import AboutRoute from "../../components/AboutRoute/AboutRoute";
 
@@ -38,7 +37,10 @@ export default function SignUp() {
     onSuccess: (data) => {
       localStorage.setItem("token", data?.data?.data?.token);
       setLogin(data?.data?.data?.token);
-      navigate("/");
+      toast.success('user created successfully')
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
       
     }, 
     onError: (error)=>{
@@ -54,8 +56,9 @@ export default function SignUp() {
     mutate(formData);
   }
   function submitSignUp(formData) {
+     const apiUrl = import.meta.env.VITE_API_BASE_URL || 'https://route-posts.routemisr.com';
     return axios.post(
-      `https://route-posts.routemisr.com/users/signup`,
+      `${apiUrl}/users/signup`,
       formData,
     );
   }

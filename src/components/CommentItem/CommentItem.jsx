@@ -63,7 +63,7 @@ function hadeDelComment(){
 const {mutate:likeCommentMutate, data:likedCommdata, isPending:likePending}=useMutation({mutationFn:likeComment, 
   onSuccess: ()=>{
     queryClient.invalidateQueries({queryKey: ['comments',comment?.post]})
-     queryClient.invalidateQueries({ queryKey: ["postItem", comment?.post] });
+    queryClient.invalidateQueries({ queryKey: ["postItem", comment?.post] });
   }
 })
 

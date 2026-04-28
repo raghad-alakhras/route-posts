@@ -7,7 +7,7 @@ export default function SuggestedFriends() {
 
 
   const { data, isLoading } = useGetSuggestedFriends();
-  const [isOpen, setOpen] = useState(true); 
+  const [isOpen, setOpen] = useState(false); 
   const searchInput = useRef(null);
   const [searchedFriend, setSearchedFriend] = useState(data?.data?.data?.suggestions);
   const [searchTrem , setSearchTrem]=useState('')
@@ -39,7 +39,7 @@ export default function SuggestedFriends() {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-md shadow-gray-300 p-4 xl:hidden">
+      <div className={`${!isOpen ? "block" : "hidden"} bg-white rounded-xl shadow-md shadow-gray-300 p-4 xl:hidden`}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <i className="fa-regular fa-user text-md text-blue-500"></i>
@@ -53,7 +53,7 @@ export default function SuggestedFriends() {
               onClick={toggleMenu}
               className="text-blue-500 text-xs cursor-pointer font-bold focus:outline-none focus:border-none xl:hidden"
             >
-              {isOpen ? "Hide" : "Show"}
+              Show
             </button>
           </div>
         </div>
@@ -71,6 +71,12 @@ export default function SuggestedFriends() {
             <div className="size-5 font-semibold rounded-full bg-gray-300 flex items-center justify-center text-xs">
               {data?.data?.data?.suggestions?.length || 5}
             </div>
+              <button
+              onClick={toggleMenu}
+              className="text-blue-500 text-xs cursor-pointer font-bold focus:outline-none focus:border-none xl:hidden"
+            >
+              Hide
+            </button>
           </div>
         </div>
         <div className="relative">

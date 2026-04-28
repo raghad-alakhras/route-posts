@@ -1,12 +1,10 @@
 import { createContext, useEffect, useState } from "react"
 
 export const authContext = createContext()
-
-import React from 'react'
 import axios from "axios"
-import { useQuery } from "@tanstack/react-query"
 
 export default function AuthContextProvider({children}) {
+  const apiUrl = import.meta.env.VITE_API_BASE_URL || 'https://route-posts.routemisr.com';
    const [isLogin, setLogin]= useState(null)
    const [userData,setUserData]= useState(null)
     
@@ -14,8 +12,8 @@ export default function AuthContextProvider({children}) {
 
   async function getUserData(){
    
-    const {data}= await axios.get(`https://route-posts.routemisr.com/users/profile-data`, {headers : {Authorization : `Bearer ${localStorage.getItem('token')}`}})
-    setUserData(data?.data?.user);     
+    const {data}= await axios.get(`${apiUrl}/users/profile-data`, {headers : {Authorization : `Bearer ${localStorage.getItem('token')}`}})
+    setUserData(data?.data?.user);   
     } 
     
 

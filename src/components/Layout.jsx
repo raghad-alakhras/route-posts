@@ -7,7 +7,7 @@ export default function
 () {
   return (
 <>
-<div className="">
+<div className="overflow-hidden">
   <Navbar/>
   <Outlet/>
 </div>

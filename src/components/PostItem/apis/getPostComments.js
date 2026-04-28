@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 export default function useFetchPostComments(id){
+   const apiUrl = import.meta.env.VITE_API_BASE_URL || 'https://route-posts.routemisr.com';
 const { data,isLoading,isError } = useQuery({
     queryKey: ["comments", id],
     queryFn: getPostComments,
@@ -9,7 +10,7 @@ const { data,isLoading,isError } = useQuery({
 
   function getPostComments() {
     return axios.get(
-      `https://route-posts.routemisr.com/posts/${id}/comments?page=1&limit=10`,
+      `${apiUrl}/posts/${id}/comments?page=1&limit=10`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

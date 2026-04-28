@@ -4,12 +4,15 @@ import AddComment from "../AddComment/AddComment.jsx";
 import { useContext, useRef, useState } from "react";
 import TopComment from "../TopComment/TopComment";
 import CommentItem from "../CommentItem/CommentItem";
-import useFetchPostComments from "./getPostComments";
+import useFetchPostComments from "./apis/getPostComments.js";
 import LoadingComments from "../LoadingComments/LoadingComments";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { authContext } from "../../context/AuthContext.jsx";
 import axios from "axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { savePost } from "./apis/savePost.js";
+
 
 export default function PostItem({ post }) {
   // ref & editing
@@ -18,11 +21,13 @@ export default function PostItem({ post }) {
   const [imgPreview, setImgPreview] = useState(post?.image);
   const [isAllComments, setAllComments] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+
+  // edit model
   function toggleOpenEdit() {
     setOpenEdit(true);
     toggleMenu();
   }
-
+//  img preview actions
   function cancleEdit() {
     setOpenEdit(false);
     bodyInput.current.value = null;
@@ -39,17 +44,18 @@ export default function PostItem({ post }) {
   function closeBtn() {
     setImgPreview(null);
     imgInput.current.value = null;
+
   }
 
-  // send data
+  //edit post handle
   const queryClient = useQueryClient();
   const { mutate, data: editedData } = useMutation({
     mutationFn: editPost,
-    onSuccess: () => {
+    onSuccess: (editedData) => {
       setOpenEdit(false);
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       queryClient.invalidateQueries({ queryKey: ["feedPosts"] });
-      queryClient.invalidateQueries({ queryKey: ["postItem", post?.id] });
+      queryClient.invalidateQueries({ queryKey: ["postItem", editedData?.data?.data?.post?.id] });
       queryClient.invalidateQueries({ queryKey: ["userData"] });
     },
   });
@@ -63,7 +69,7 @@ export default function PostItem({ post }) {
     mutate(formData);
   }
 
-  function editPost(formData) {
+   function editPost(formData) {
     return axios.put(
       `https://route-posts.routemisr.com/posts/${post?.id}`,
       formData,
@@ -73,15 +79,18 @@ export default function PostItem({ post }) {
     );
   }
 
+
   // delete post
-  const {data:deletedData , mutate:deletePostMutate}= useMutation({mutationFn:deletePost, 
-    onSuccess : ()=>{
+  const { data: deletedData, mutate: deletePostMutate } = useMutation({
+    mutationFn: deletePost,
+    onSuccess: (deletedData) => {
+      console.log('deletedData',deletedData)
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       queryClient.invalidateQueries({ queryKey: ["feedPosts"] });
       queryClient.invalidateQueries({ queryKey: ["postItem", post?.id] });
       queryClient.invalidateQueries({ queryKey: ["userData"] });
-    }
-  })
+    },
+  });
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
   function openDelete() {
@@ -89,58 +98,58 @@ export default function PostItem({ post }) {
     toggleMenu();
   }
 
-  function deletePost(){
-    return axios.delete(`https://route-posts.routemisr.com/posts/${post?.id}`,{
-      headers:{Authorization:`Bearer ${localStorage.getItem('token')}`}
-    })
+   function deletePost() {
+    return axios.delete(`https://route-posts.routemisr.com/posts/${post?.id}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
   }
-  function handleDel(){
-    deletePostMutate()
-    setOpenDeleteModal(false)
+  function handleDel() {
+    deletePostMutate();
+    setOpenDeleteModal(false);
   }
-
 
   // like post
-  const {mutate:likePostMutate,data:likePostData}= useMutation({mutationFn:likePost,
-    onSuccess : ()=>{
+  const { mutate: likePostMutate, data: likePostData } = useMutation({
+    mutationFn: likePost,
+    onSuccess: (likePostData) => {
+      console.log('like',likePostData)
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       queryClient.invalidateQueries({ queryKey: ["feedPosts"] });
       queryClient.invalidateQueries({ queryKey: ["postItem", post?.id] });
       queryClient.invalidateQueries({ queryKey: ["userData"] });
-    }
-  })
-  function likePost(){
-    return axios.put(`https://route-posts.routemisr.com/posts/${post?.id}/like`,{},{
-      headers :{Authorization:`Bearer ${localStorage.getItem('token')}`}
-    })
-  }
-  function handleLike(){
-    likePostMutate()
-  }
+    },
+  });
 
-
+  function handleLike() {
+    likePostMutate();
+  }
+ function likePost() {
+    return axios.put(
+      `https://route-posts.routemisr.com/posts/${post?.id}/like`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      },
+    );
+  }
 
   // saved post
-   const {mutate:savePostMutate,data:savePostData}= useMutation({mutationFn:savePost,
-    onSuccess : ()=>{
+  const { mutate: savePostMutate, data: savePostData } = useMutation({
+    mutationFn: savePost,
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       queryClient.invalidateQueries({ queryKey: ["feedPosts"] });
       queryClient.invalidateQueries({ queryKey: ["postItem", post?.id] });
       queryClient.invalidateQueries({ queryKey: ["userData"] });
-    }
-  })
+    },
+  });
 
-  function savePost(){
-    return axios.put(`https://route-posts.routemisr.com/posts/${post?.id}/bookmark`,{},{
-      headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}
-    })
+
+  function handleSavedPosts() {
+    toggleMenu();
+    savePostMutate(post?.id);
   }
-  function handleSavedPosts(){
-    toggleMenu()
-   savePostMutate()
-  }
- 
-  
+
   // post details
   function showAllComments() {
     setAllComments(true);
@@ -150,15 +159,8 @@ export default function PostItem({ post }) {
 
   const { userData } = useContext(authContext);
   const {
-    body,
-    id,
-    image,
-    user: { photo, name, username },
-    createdAt,
-    commentsCount,
-    topComment,
-    likesCount,
-    sharesCount,
+    user: { photo, name },
+    commentsCount,topComment,likesCount, sharesCount,
   } = post;
   const STATIC_IMAGE =
     "https://linked-posts-app-pied.vercel.app/assets/user-vTumSY3j.png";
@@ -200,7 +202,7 @@ export default function PostItem({ post }) {
             </div>
           </div>
 
-          {/* if user posts: */}
+          {/* post actions: */}
           <div className="relative">
             <div
               onClick={toggleMenu}
@@ -285,9 +287,9 @@ export default function PostItem({ post }) {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 class="lucide lucide-bookmark"
                 aria-hidden="true"
               >
@@ -302,7 +304,7 @@ export default function PostItem({ post }) {
             <img src={post?.image} alt="" className="w-full" />
           )}
           {/* edit img state */}
-          {openEdit && (
+          {post?.image && openEdit && (
             <div>
               <div className="relative">
                 <img src={imgPreview} alt="" className="w-full" />
@@ -314,12 +316,13 @@ export default function PostItem({ post }) {
             </div>
           )}
           <div className="flex items-center justify-between my-2  ">
-            <div className="flex gap-2 items-center">
-              <div className="size-6 rounded-full flex items-center justify-center bg-blue-500 group">
+            <div className="flex gap-1 md:gap-2 items-center">
+              <div className="size-5 md:size-6 rounded-full flex items-center justify-center bg-blue-500 group">
                 <i className="fa-regular fa-thumbs-up text-white font-bold text-[12px]  group-hover:scale-107 transition-all duration-700"></i>
               </div>
               <span className="text-gray-700 text-sm cursor-pointer font-semibold">
-                {likesCount} likes
+                {likesCount}
+                <span className="hidden md:inline"> likes</span>
               </span>
             </div>
             <div className="flex gap-3 items-center">
@@ -331,9 +334,9 @@ export default function PostItem({ post }) {
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   class="lucide lucide-repeat2 lucide-repeat-2"
                   aria-hidden="true"
                 >
@@ -353,7 +356,7 @@ export default function PostItem({ post }) {
                 onClick={() => {
                   navigate(`/post/${post?.id}`);
                 }}
-                class="rounded-md px-2 py-1 text-xs font-bold text-blue-600 hover:bg-blue-300/30 transition-all duration-500 cursor-pointer"
+                class="hidden md:inline-block rounded-md px-2 py-1 text-xs font-bold text-blue-600 hover:bg-blue-300/30 transition-all duration-500 cursor-pointer"
               >
                 View details
               </button>
@@ -365,37 +368,45 @@ export default function PostItem({ post }) {
 
         <div className="border-t border-gray-200 mb-1 pt-1 flex items-center justify-between text-lg px-2 *:border-none *:outline-none *:text-gray-600 *:py-2 *:text-center *:w-full *:text-sm *:font-semibold *:hover:bg-blue-50 *:rounded-md">
           <button onClick={handleLike}>
-            <div className={`flex items-center justify-center py-2 gap-2 ${likePostData?.data?.data?.liked && 'text-blue-500 bg-blue-50'} `}>
+            <div
+              className={`flex items-center justify-center py-2 gap-2 ${likePostData?.data?.data?.liked && "text-blue-500 bg-blue-50"} `}
+            >
               <i className="fa-regular fa-thumbs-up transition-all duration-700 "></i>
-              <span className="transition-all duration-700">Like</span>
+              <span className="transition-all duration-700 hidden md:inline-block">
+                Like
+              </span>
             </div>
           </button>
           <button>
             <div className="flex items-center justify-center gap-2 py-2">
               <i className="fa-regular fa-comment-dots transition-all duration-700 "></i>
-              <span className=" transition-all duration-700">Comment</span>
+              <span className=" transition-all duration-700  hidden md:inline-block">
+                Comment
+              </span>
             </div>
           </button>
           <button>
             <div className="flex items-center justify-center gap-2 py-2">
               <i className="fa-solid fa-share-nodes transition-all duration-700 "></i>
-              <span className=" transition-all duration-700">Share</span>
+              <span className=" transition-all duration-700  hidden md:inline-block">
+                Share
+              </span>
             </div>
           </button>
         </div>
 
         {/* top comment */}
 
-        <div className="px-3 mb-2 bg-white pb-7 rounded-xl">
-          {!isAllComments && topComment && (
+        {!isAllComments && topComment && (
+          <div className="px-3 mb-2 bg-white pb-7 rounded-xl">
             <TopComment comment={topComment} showAllComment={showAllComments} />
-          )}
-        </div>
+          </div>
+        )}
 
         {/* no comments */}
 
         {commentsCount === 0 && (
-          <p className="text-gray-500 text-center my-2 text-sm py-5">
+          <p className="text-gray-500 text-center my-2 text-sm pb-2">
             No comments yet. Be the first to comment
           </p>
         )}
@@ -417,81 +428,89 @@ export default function PostItem({ post }) {
       </div>
 
       {/* delete modal */}
-   {openDeleteModal &&  
-    <div class="w-full absolute top-1/2 left-1/2 -translate-1/2 max-w-[520px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-        <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <h4 class="text-base font-extrabold text-slate-900">
-            Confirm action
-          </h4>
-          <button
-          onClick={()=>{setOpenDeleteModal(false)}}
-            type="button"
-            class="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-x"
-              aria-hidden="true"
+      {openDeleteModal && (
+        <div class="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div class="max-w-[520px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl m-4">
+          <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+            <h4 class="text-base font-extrabold text-slate-900">
+              Confirm action
+            </h4>
+            <button
+              onClick={() => {
+                setOpenDeleteModal(false);
+              }}
+              type="button"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
             >
-              <path d="M18 6 6 18"></path>
-              <path d="m6 6 12 12"></path>
-            </svg>
-          </button>
-        </div>
-        <div class="flex items-start gap-3 p-4">
-          <div class="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-triangle-alert"
-              aria-hidden="true"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                class="lucide lucide-x"
+                aria-hidden="true"
+              >
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="flex items-start gap-3 p-4">
+            <div class="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                class="lucide lucide-triangle-alert"
+                aria-hidden="true"
+              >
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
+                <path d="M12 9v4"></path>
+                <path d="M12 17h.01"></path>
+              </svg>
+            </div>
+            <div>
+              <h5 class="text-sm font-extrabold text-slate-900">
+                Delete this post?
+              </h5>
+              <p class="mt-1 text-sm text-slate-600">
+                This post will be permanently removed from your profile and
+                feed.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-2 border-t border-slate-200 px-4 py-3">
+            <button
+              onClick={() => {
+                setOpenDeleteModal(false);
+              }}
+              type="button"
+              class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
-              <path d="M12 9v4"></path>
-              <path d="M12 17h.01"></path>
-            </svg>
-          </div>
-          <div>
-            <h5 class="text-sm font-extrabold text-slate-900">
-              Delete this post?
-            </h5>
-            <p class="mt-1 text-sm text-slate-600">
-              This post will be permanently removed from your profile and feed.
-            </p>
+              Cancel
+            </button>
+            <button
+              onClick={handleDel}
+              type="button"
+              class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              Delete post
+            </button>
           </div>
         </div>
-        <div class="flex items-center justify-end gap-2 border-t border-slate-200 px-4 py-3">
-          <button
-          onClick={()=>{setOpenDeleteModal(false)}}
-            type="button"
-            class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Cancel
-          </button>
-          <button
-          onClick={handleDel}
-            type="button"
-            class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            Delete post
-          </button>
-        </div>
-      </div>}
+      </div>
+      )}
     </>
   );
 }
